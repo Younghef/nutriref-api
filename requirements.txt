@@ -5,3 +5,4 @@ redis>=5.0.0
 pydantic>=2.7.0
 pydantic-settings>=2.4.0
 fastapi-x402>=0.1.0
+cdp-sdk>=1.45.0

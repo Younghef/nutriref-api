@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi_x402 import init_x402
+from fastapi_x402 import networks as x402_networks
 
 from app import usda
 from app.cache import close_redis
@@ -11,6 +12,14 @@ from app.routes import compare, detail, recipe, search
 
 
 logging.basicConfig(level=settings.log_level)
+
+# fastapi-x402 ships the wrong EIP-712 token name for Base mainnet USDC — it uses
+# "USDC" where the contract's on-chain domain name is "USD Coin". The payer signs
+# transferWithAuthorization against that domain, so a mismatch makes the facilitator's
+# verification revert (invalid_payload). Correct it before init_x402 builds challenges.
+_base_usdc = x402_networks.NETWORK_CONFIGS["base"].assets["usdc"]
+_base_usdc.name = "USD Coin"
+_base_usdc.eip712_name = "USD Coin"
 
 
 @asynccontextmanager
