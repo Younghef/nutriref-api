@@ -10,7 +10,18 @@ from app.services import get_detail_cached
 router = APIRouter()
 
 
-@router.post("/recipe", response_model=RecipeResponse)
+@router.post(
+    "/recipe",
+    response_model=RecipeResponse,
+    summary="Sum nutrition across a recipe of weighted ingredients",
+    description=(
+        "Takes a list of ingredients as `{fdc_id, grams}` pairs, scales each food's per-100g "
+        "nutrition by `grams/100`, and sums across all ingredients. Returns aggregate nutrition "
+        "for the whole recipe. Composes from cached /detail calls. "
+        "**Price: $0.005 per request.**"
+    ),
+    response_description="Total grams, ingredient count, and summed nutrition.",
+)
 @pay("$0.005")
 async def recipe(req: RecipeRequest) -> RecipeResponse:
     foods = await asyncio.gather(*(get_detail_cached(i.fdc_id) for i in req.ingredients))

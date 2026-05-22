@@ -46,7 +46,19 @@ def _build_winners(foods: list[dict[str, Any]]) -> dict[str, Any]:
     return winners
 
 
-@router.post("/compare", response_model=CompareResponse)
+@router.post(
+    "/compare",
+    response_model=CompareResponse,
+    summary="Compare 2–5 foods side by side",
+    description=(
+        "Fetches normalized nutrition for each `fdc_id` and computes per-nutrient winners. "
+        "Higher-is-better fields (protein, fiber, vitamin C, calcium, iron, potassium) report the "
+        "highest; lower-is-better fields (sodium, sugar, saturated_fat, cholesterol) report the "
+        "lowest; calories/fat/carbs report both extremes. Composes from cached /detail calls. "
+        "**Price: $0.003 per request.**"
+    ),
+    response_description="Foods array + per-nutrient winners (with criterion).",
+)
 @pay("$0.003")
 async def compare(req: CompareRequest) -> CompareResponse:
     foods = await asyncio.gather(*(get_detail_cached(fid) for fid in req.fdc_ids))

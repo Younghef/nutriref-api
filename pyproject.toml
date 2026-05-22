@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.4.0",
     "fastapi-x402>=0.1.0",
     "cdp-sdk>=1.45.0",
+    "x402[extensions]>=2.10.0",
 ]
 
 [project.optional-dependencies]
@@ -27,13 +28,20 @@ payer = [
     "x402>=2.10.0",
     "eth-account>=0.13.0",
 ]
+# For running the MCP server wrapper (mcp_server/). Lets agents that speak MCP
+# (Claude Desktop, Claude Code, etc.) consume NutriRef as native tools.
+mcp = [
+    "mcp>=1.0.0",
+    "x402>=2.10.0",
+    "eth-account>=0.13.0",
+]
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["app*", "mcp_server*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

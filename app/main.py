@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi_x402 import init_x402
 from fastapi_x402 import networks as x402_networks
 
-from app import usda
+from app import discovery, landing, usda
 from app.cache import close_redis
 from app.config import settings
 from app.routes import compare, detail, recipe, search
@@ -31,8 +31,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="NutriRef",
-    description="Monetized USDA FoodData Central API for AI agents, gated by x402 micropayments.",
-    version="0.1.0",
+    summary="Pay-per-call USDA nutrition API for AI agents (x402 / USDC on Base).",
+    description=(
+        "Structured access to the USDA FoodData Central database, gated by the **x402** "
+        "micropayment protocol. Agents pay per request in USDC on Base — no signup, no API keys, "
+        "no human-in-the-loop auth. Unpaid requests get a `402 Payment Required` with payment "
+        "instructions; x402-aware clients sign a gasless USDC authorization (EIP-3009) and retry "
+        "automatically.\n\n"
+        "Four endpoints: food search ($0.001), food detail ($0.002), side-by-side compare ($0.003), "
+        "and recipe scale+sum ($0.005). All values per 100g; missing nutrients are `null`."
+    ),
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -43,6 +52,8 @@ init_x402(
     facilitator_url=settings.x402_facilitator_url,
 )
 
+app.include_router(landing.router)
+app.include_router(discovery.router)
 app.include_router(search.router, prefix="/v1/nutrition", tags=["nutrition"])
 app.include_router(detail.router, prefix="/v1/nutrition", tags=["nutrition"])
 app.include_router(compare.router, prefix="/v1/nutrition", tags=["nutrition"])
