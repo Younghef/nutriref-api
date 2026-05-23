@@ -20,8 +20,12 @@ All values per 100g. Missing nutrients are `null`, not `0`. `compare` returns pe
 NutriRef ships an MCP server that exposes the four endpoints as native tools. Install once:
 
 ```bash
-pip install "nutriref[mcp]"  # or: git clone && pip install -e ".[mcp]"
+git clone https://github.com/Younghef/nutriref-api.git
+cd nutriref-api
+pip install -e ".[mcp]"
 ```
+
+> A PyPI release is planned. Until then the source install above is the supported path.
 
 Then add this to your MCP client config (Claude Desktop's `claude_desktop_config.json`, Claude Code's MCP settings, etc.):
 
