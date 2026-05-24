@@ -1,0 +1,75 @@
+{
+  "manifest_version": "0.4",
+  "name": "nutriref",
+  "display_name": "NutriRef",
+  "version": "0.2.0",
+  "description": "Pay-per-call USDA nutrition data for AI agents (x402 + USDC on Base).",
+  "long_description": "NutriRef exposes the USDA FoodData Central nutrition database as four MCP tools (nutrition_search, nutrition_detail, nutrition_compare, nutrition_recipe). Each call charges $0.001-$0.005 in USDC on Base mainnet via the x402 micropayment protocol — no signup, no API keys. Returns normalized per-100g nutrition across 13 tracked nutrients.",
+  "author": {
+    "name": "Derek Hefley",
+    "url": "https://github.com/Younghef"
+  },
+  "homepage": "https://nutriref.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Younghef/nutriref-api"
+  },
+  "license": "MIT",
+  "keywords": ["nutrition", "usda", "x402", "paid", "food", "agents", "mcp"],
+  "server": {
+    "type": "uv",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory", "${__dirname}",
+        "server/main.py"
+      ],
+      "env": {
+        "PAYER_PRIVATE_KEY": "${user_config.payer_private_key}",
+        "NUTRIREF_BASE_URL": "${user_config.nutriref_base_url}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "nutrition_search",
+      "description": "Search USDA foods by name; returns fdc_id and macros. Costs $0.001 USDC."
+    },
+    {
+      "name": "nutrition_detail",
+      "description": "Full per-100g nutrition (13 nutrients) for one food by fdc_id. Costs $0.002 USDC."
+    },
+    {
+      "name": "nutrition_compare",
+      "description": "Compare 2-5 foods side by side with per-nutrient winners. Costs $0.003 USDC."
+    },
+    {
+      "name": "nutrition_recipe",
+      "description": "Scale and sum nutrition across weighted ingredients. Costs $0.005 USDC."
+    }
+  ],
+  "user_config": {
+    "payer_private_key": {
+      "type": "string",
+      "title": "Payer wallet private key",
+      "description": "Private key (0x-prefixed, 64 hex chars) of a Base mainnet wallet holding USDC. The wallet pays for each tool call. Use a dedicated wallet funded only with what you're willing to spend.",
+      "sensitive": true,
+      "required": true
+    },
+    "nutriref_base_url": {
+      "type": "string",
+      "title": "NutriRef base URL",
+      "description": "Production API base URL. Only override for self-hosted instances.",
+      "default": "https://nutriref.xyz",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.11"
+    }
+  }
+}

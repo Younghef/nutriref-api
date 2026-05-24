@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# MCPB build artifacts (the .mcpb is built from mcpb/ source via scripts/build-mcpb.sh)
+build/
+mcpb/server/mcp_server/

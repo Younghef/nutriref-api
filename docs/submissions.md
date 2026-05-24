@@ -58,34 +58,43 @@ If the form takes a longer description, this works:
 
 ## 2. Smithery (smithery.ai)
 
-**Prerequisite (already done):** `smithery.yaml` checked into the repo root.
-That file declares how Smithery installs and runs the server, including
-the config schema (a single required `payerPrivateKey` string).
+Smithery now publishes stdio servers as **MCPB bundles** via their CLI,
+not via a GitHub-connect form. The repo already has everything needed:
+`mcpb/` (bundle source), `scripts/build-mcpb.sh` (one-command rebuild),
+and a manifest declaring the user config schema.
 
-**Where:** https://smithery.ai/new — connect your GitHub account, pick
-`Younghef/nutriref-api`. Smithery will read `smithery.yaml` automatically.
+### One-time: log in to Smithery
+```bash
+npx @smithery/cli login
+```
+Opens a browser for OAuth. Smithery's namespace for your account is
+`derekhefley` (as you saw on the publish page).
 
-**Display fields Smithery will ask for:**
+### Build and publish
+```bash
+./scripts/build-mcpb.sh
+npx @smithery/cli mcp publish ./build/nutriref.mcpb -n derekhefley/nutriref
+```
+The build script refreshes the `mcp_server/` copy inside the bundle,
+validates the manifest, and produces `build/nutriref.mcpb` (~4 kB).
+The publish command uploads it under your namespace.
 
-- **Display name:** `NutriRef`
-- **Short description:** `Pay-per-call USDA nutrition data for AI agents (x402 + USDC on Base).`
-- **Long description / README** (Smithery often re-renders this):
-  > NutriRef is a monetized API for AI agents that need real nutrition
-  > data without subscription or API-key flows. The MCP server exposes
-  > four tools — search foods, get full per-100g nutrition by FDC ID,
-  > compare 2–5 foods side by side, and sum nutrition across recipe
-  > ingredients. Each call charges $0.001–$0.005 in USDC on Base
-  > mainnet via the x402 protocol; the agent operator funds a wallet
-  > once and the rest is automatic.
-  >
-  > See `examples/meal-planner/` in the repo for a complete worked
-  > Claude agent that uses NutriRef.
-- **Category:** `Data` or `API`
-- **Tags:** `nutrition`, `usda`, `food`, `x402`, `paid`, `base`
+### What Smithery will display (sourced from manifest.json)
 
-**Note:** Smithery v1 configs require the user to provide their own
-`payerPrivateKey`. The config schema in `smithery.yaml` marks it
-required and renders a sensitive-input field.
+- **Display name:** NutriRef
+- **Description:** "Pay-per-call USDA nutrition data for AI agents (x402 + USDC on Base)."
+- **Long description, license, repository, homepage, keywords, and tools** all flow from `mcpb/manifest.json` — no UI form to fill.
+- **User config the operator fills out:** `payer_private_key` (sensitive, required) and `nutriref_base_url` (optional, default `https://nutriref.xyz`).
+
+### Future updates
+
+Whenever the MCP server code changes, rebuild and republish:
+```bash
+./scripts/build-mcpb.sh
+npx @smithery/cli mcp publish ./build/nutriref.mcpb -n derekhefley/nutriref
+```
+Smithery's CLI handles version bumps if you increment `version` in
+`mcpb/manifest.json`.
 
 ---
 
