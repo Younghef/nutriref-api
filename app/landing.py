@@ -147,7 +147,9 @@ asyncio.run(main())</code></pre>
   <h2>Machine-readable</h2>
   <p><a href="/openapi.json">/openapi.json</a> — full OpenAPI spec ·
      <a href="/docs">/docs</a> — Swagger UI ·
-     <a href="/.well-known/x402">/.well-known/x402</a> — x402 Bazaar discovery</p>
+     <a href="/.well-known/x402">/.well-known/x402</a> — x402 Bazaar discovery ·
+     <a href="/llms.txt">/llms.txt</a> — LLM-readable summary ·
+     <a href="/.well-known/ai-plugin.json">/.well-known/ai-plugin.json</a> — AI plugin manifest</p>
 
   <footer>
     Built with <a href="https://www.x402.org/">x402</a> · USDA data from <a href="https://fdc.nal.usda.gov/">FoodData Central</a>

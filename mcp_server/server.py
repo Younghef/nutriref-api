@@ -51,11 +51,11 @@ mcp = FastMCP(
 
 @mcp.tool()
 async def nutrition_search(q: str, limit: int = 10) -> dict[str, Any]:
-    """Search USDA foods by name. Returns ranked matches with fdc_id and macros (calories, protein, carbs, fat). Costs $0.001 USDC.
+    """Find foods in the USDA FoodData Central database by free-text name. Use this FIRST when the user mentions a food by name and you need its `fdc_id` for any of the other nutrition_* tools. Returns ranked matches with fdc_id, description, brand_owner, and a quick macro summary (calories/protein/carbs/fat per 100g). Charges $0.001 USDC per call.
 
     Args:
-        q: Free-text food name to search (e.g. "banana", "greek yogurt").
-        limit: Max results to return, 1-50. Default 10.
+        q: Free-text food name (e.g. "banana", "greek yogurt", "chicken breast").
+        limit: Max results to return, 1-50. Default 10. Use a small limit unless you need to browse.
     """
     r = await _client().get("/v1/nutrition/search", params={"q": q, "limit": limit})
     r.raise_for_status()
@@ -64,10 +64,10 @@ async def nutrition_search(q: str, limit: int = 10) -> dict[str, Any]:
 
 @mcp.tool()
 async def nutrition_detail(fdc_id: int) -> dict[str, Any]:
-    """Full nutrition for one food by USDA FDC ID. Returns all 13 tracked nutrients per 100g (missing values null, not 0). Costs $0.002 USDC.
+    """Get the full per-100g nutrition profile for one specific food. Use this when you have an `fdc_id` (from nutrition_search) and the user needs micronutrients beyond just calories/protein/carbs/fat. Returns all 13 tracked nutrients: calories, protein, fat, carbs, fiber, sugar, sodium, cholesterol, saturated_fat, vitamin_c, calcium, iron, potassium. Missing nutrients are `null`, not 0. Charges $0.002 USDC per call.
 
     Args:
-        fdc_id: USDA FoodData Central ID, from nutrition_search.
+        fdc_id: USDA FoodData Central ID, obtained from nutrition_search.
     """
     r = await _client().get(f"/v1/nutrition/detail/{fdc_id}")
     r.raise_for_status()
@@ -76,7 +76,7 @@ async def nutrition_detail(fdc_id: int) -> dict[str, Any]:
 
 @mcp.tool()
 async def nutrition_compare(fdc_ids: list[int]) -> dict[str, Any]:
-    """Compare 2-5 foods side by side. Returns each food's nutrition plus per-nutrient winners (highest protein, lowest sodium, etc.). Costs $0.003 USDC.
+    """Compare 2 to 5 foods side by side. Use this when the user asks "which is healthier," "which has more protein," or any cross-food comparison — it's cheaper and clearer than calling nutrition_detail multiple times. Returns each food's full nutrition plus per-nutrient winners (highest protein, lowest sodium, etc.). Charges $0.003 USDC per call.
 
     Args:
         fdc_ids: 2 to 5 USDA FDC IDs to compare.
@@ -88,10 +88,10 @@ async def nutrition_compare(fdc_ids: list[int]) -> dict[str, Any]:
 
 @mcp.tool()
 async def nutrition_recipe(ingredients: list[dict[str, Any]]) -> dict[str, Any]:
-    """Sum nutrition across a recipe of weighted ingredients. Scales each food's per-100g nutrition by grams/100 and sums. Costs $0.005 USDC.
+    """Sum nutrition across a recipe of weighted ingredients. Use this for meal planning, recipe analysis, or any "what are the totals if I combine X grams of A with Y grams of B" task. Each food's per-100g nutrition is scaled by grams/100 then summed. Charges $0.005 USDC per call.
 
     Args:
-        ingredients: List of {"fdc_id": int, "grams": float} pairs (at least one).
+        ingredients: List of {"fdc_id": int, "grams": float} pairs. At least one; weights in grams.
     """
     r = await _client().post("/v1/nutrition/recipe", json={"ingredients": ingredients})
     r.raise_for_status()

@@ -130,6 +130,14 @@ pip install -e ".[dev]"
 pytest
 ```
 
+## Example: Claude agent that uses NutriRef
+
+`examples/meal-planner/` is a complete, ~150-line agent that gives Claude
+the four NutriRef endpoints as tools and asks it to plan a day of meals
+hitting a calorie/protein goal. Worth reading if you're wiring NutriRef
+into your own agent — the tool schemas and the payment loop are all
+there. See `examples/meal-planner/README.md`.
+
 ## Repo layout
 
 ```
@@ -137,11 +145,12 @@ app/                # FastAPI service
   main.py             # app factory + x402 init
   routes/             # search, detail, compare, recipe
   landing.py          # / (public landing page)
-  discovery.py        # /.well-known/x402 (Bazaar directory)
+  discovery.py        # /.well-known/x402, /llms.txt, /.well-known/ai-plugin.json, /logo.svg
   usda.py             # async USDA client
   cache.py            # Redis wrapper
   normalize.py        # USDA → flat 13-nutrient schema
 mcp_server/         # MCP server wrapper for agent use
+examples/           # worked agent examples (meal planner)
 scripts/            # CDP wallet bootstrap + payer-side test
 tests/              # pytest + respx + fakeredis
 ```
