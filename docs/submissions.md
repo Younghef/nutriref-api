@@ -134,7 +134,7 @@ The server itself is at https://nutriref.xyz; the MCP wrapper is in
 `mcp_server/` of the repo. An end-to-end Claude example lives in
 `examples/meal-planner/`.
 
-License: [check the LICENSE file in the repo and put it here].
+License: MIT.
 ```
 
 ---
@@ -162,7 +162,7 @@ directory; it sometimes accepts via form and sometimes via PR to
   > https://github.com/Younghef/nutriref-api.
 - **Author:** Your GitHub handle
 - **Repository:** `https://github.com/Younghef/nutriref-api`
-- **License:** TBD (whatever you choose for the repo)
+- **License:** MIT
 - **Install command:** same as mcp.so above
 - **Configuration:** same JSON block as mcp.so above
 

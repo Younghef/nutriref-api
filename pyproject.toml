@@ -3,6 +3,8 @@ name = "nutriref"
 version = "0.1.0"
 description = "Monetized USDA FoodData Central API for AI agents, gated by x402 micropayments"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Derek Hefley" }]
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
