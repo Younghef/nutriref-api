@@ -60,6 +60,8 @@ app.include_router(compare.router, prefix="/v1/nutrition", tags=["nutrition"])
 app.include_router(recipe.router, prefix="/v1/nutrition", tags=["nutrition"])
 
 
-@app.get("/health", tags=["meta"])
+# Accept HEAD as well so HEAD-based uptime monitors (UptimeRobot's default,
+# Pingdom, etc.) don't see a 405 and report the service as down.
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["meta"])
 async def health() -> dict[str, str]:
     return {"status": "ok"}
