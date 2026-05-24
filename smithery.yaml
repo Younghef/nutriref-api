@@ -1,0 +1,40 @@
+# Smithery configuration for the NutriRef MCP server.
+# Listed on https://smithery.ai once submitted.
+# Spec: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    title: NutriRef MCP server configuration
+    description: >-
+      NutriRef exposes USDA FoodData Central nutrition behind x402 micropayments.
+      Each tool call charges the configured wallet a small amount of USDC
+      ($0.001-$0.005) on Base mainnet. The wallet only needs USDC; gas is
+      sponsored by the x402 facilitator (EIP-3009 gasless authorizations).
+    properties:
+      payerPrivateKey:
+        type: string
+        title: Payer wallet private key
+        description: >-
+          Private key (0x-prefixed, 64 hex chars) of a Base mainnet wallet that
+          holds USDC. This wallet pays for each tool call. Treat as a secret;
+          for safety, use a dedicated wallet funded only with what you're
+          willing to spend.
+      nutrirefBaseUrl:
+        type: string
+        title: NutriRef base URL
+        description: Production API base URL. Override only for self-hosted instances.
+        default: https://nutriref.xyz
+    required:
+      - payerPrivateKey
+  commandFunction: |-
+    (config) => ({
+      command: "python",
+      args: ["-m", "mcp_server"],
+      env: {
+        PAYER_PRIVATE_KEY: config.payerPrivateKey,
+        NUTRIREF_BASE_URL: config.nutrirefBaseUrl || "https://nutriref.xyz"
+      }
+    })
+
