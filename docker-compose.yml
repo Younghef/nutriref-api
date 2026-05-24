@@ -11,8 +11,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    # No `ports:` block — Redis is only reachable from the api container over the
+    # internal docker network (hostname `redis`). Do NOT publish 6379 to the host;
+    # an open Redis on the public internet is a known attack target.
     volumes:
       - redis-data:/data
     restart: unless-stopped
