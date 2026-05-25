@@ -8,51 +8,72 @@ you. Replace the obvious placeholders if you want to tweak voice.
 
 ## 1. mcp.so
 
-**Where:** https://mcp.so/submit (their submission form). If the form has
-changed by the time you read this, mcp.so also accepts PRs to its
-[server-list repo](https://github.com/chatmcp/mcp-directory).
+**Where:** mcp.so submissions go through a single tracking issue on the
+mirror repo — https://github.com/chatmcp/mcp-directory/issues/1 — by
+adding a comment. The maintainers ingest comments and surface entries on
+https://mcp.so. There is no web form to fill.
 
-**Form fields → values:**
+**Steps:**
 
-- **Name:** `NutriRef`
-- **Description (short):** `Pay-per-call USDA nutrition data for AI agents. Each tool call charges USDC on Base mainnet via x402 — no signup, no API keys.`
-- **Repository URL:** `https://github.com/Younghef/nutriref-api`
-- **Homepage:** `https://nutriref.xyz`
-- **Category:** `Data Platforms` (or `API` if available)
-- **Tags:** `nutrition`, `usda`, `x402`, `paid`, `food`, `agents`
-- **Author:** Your GitHub handle
-- **Install command:**
-  ```
-  git clone https://github.com/Younghef/nutriref-api.git
-  cd nutriref-api && pip install -e ".[mcp]"
-  ```
-- **Configuration (longer field if available):**
-  ```json
-  {
-    "mcpServers": {
-      "nutriref": {
-        "command": "python",
-        "args": ["-m", "mcp_server"],
-        "env": {
-          "PAYER_PRIVATE_KEY": "0x...funded-base-mainnet-wallet-key...",
-          "NUTRIREF_BASE_URL": "https://nutriref.xyz"
-        }
+1. Open the issue: https://github.com/chatmcp/mcp-directory/issues/1
+2. Click **Comment** at the bottom.
+3. Paste the markdown block below verbatim, then **Comment**.
+4. Done. Your entry should appear on mcp.so within a few days.
+
+**Paste this:**
+
+````markdown
+## NutriRef — pay-per-call USDA nutrition for AI agents
+
+**USDA FoodData Central nutrition data, gated by x402 micropayments — no signup, no API keys.**
+
+NutriRef wraps the USDA FoodData Central database behind the x402 micropayment
+protocol. Each tool call charges $0.001–$0.005 in USDC on Base mainnet — the
+agent operator funds a wallet once and the rest is automatic (gas is sponsored
+by the facilitator via EIP-3009 gasless authorizations).
+
+- **Repo:** https://github.com/Younghef/nutriref-api
+- **Live API:** https://nutriref.xyz
+- **OpenAPI spec:** https://nutriref.xyz/openapi.json
+- **LLM-readable summary:** https://nutriref.xyz/llms.txt
+- **x402 discovery:** https://nutriref.xyz/.well-known/x402
+- **Transport:** stdio (Python MCP server, MCPB-packaged for one-click install)
+- **License:** MIT
+- **Auth:** None — payment via x402 in USDC on Base mainnet.
+
+### Tools (4)
+
+| Tool | Description | Price |
+|---|---|---|
+| `nutrition_search` | Find foods in the USDA database by free-text name; returns fdc_id + macros | $0.001 |
+| `nutrition_detail` | Full per-100g nutrition (13 nutrients) for one food by fdc_id | $0.002 |
+| `nutrition_compare` | Side-by-side comparison of 2–5 foods with per-nutrient winners | $0.003 |
+| `nutrition_recipe` | Scale and sum nutrition across weighted ingredients | $0.005 |
+
+### Quick start (MCP)
+
+```json
+{
+  "mcpServers": {
+    "nutriref": {
+      "command": "python",
+      "args": ["-m", "mcp_server"],
+      "env": {
+        "PAYER_PRIVATE_KEY": "0x...funded-base-mainnet-wallet-key...",
+        "NUTRIREF_BASE_URL": "https://nutriref.xyz"
       }
     }
   }
-  ```
+}
+```
 
-If the form takes a longer description, this works:
+Install: `git clone https://github.com/Younghef/nutriref-api.git && cd nutriref-api && pip install -e ".[mcp]"`
 
-> NutriRef exposes the USDA FoodData Central nutrition database as four MCP
-> tools (`nutrition_search`, `nutrition_detail`, `nutrition_compare`,
-> `nutrition_recipe`). Instead of an API key or subscription, each call
-> charges a small amount of USDC ($0.001–$0.005) on Base mainnet via the
-> x402 micropayment protocol. The agent operator funds a wallet once with
-> USDC — gas is sponsored by the facilitator, so the wallet only needs the
-> stablecoin balance. Returns normalized per-100g nutrition across 13
-> tracked nutrients; missing nutrients are explicit `null`. Live API at
-> https://nutriref.xyz, OpenAPI at https://nutriref.xyz/openapi.json.
+### Example: Claude agent using NutriRef
+
+`examples/meal-planner/` in the repo is a ~150-line Claude agent that uses
+the four tools to plan a day of meals against a calorie/protein goal.
+````
 
 ---
 
@@ -150,30 +171,33 @@ License: MIT.
 
 ## 4. PulseMCP
 
-**Where:** https://www.pulsemcp.com/submit (or wherever their current
-submission flow lives — check the homepage). PulseMCP is a curated
-directory; it sometimes accepts via form and sometimes via PR to
-[its server registry](https://github.com/PulseMCP/community).
+**Where:** https://www.pulsemcp.com/submit
 
-**Form / submission text:**
+PulseMCP's form is **minimal** — just a submission-type radio and a single
+URL field. PulseMCP scrapes the linked repo for the rest (README, license,
+tools, badges). Our README is already pitched for this; nothing else to
+prepare.
 
-- **Server name:** `NutriRef`
-- **Tagline (one line):** `Pay-per-call USDA nutrition data for AI agents.`
-- **Description:**
-  > NutriRef is a monetized MCP server that wraps the USDA FoodData
-  > Central nutrition database. Each tool call charges $0.001–$0.005
-  > in USDC on Base mainnet via the x402 micropayment protocol — no
-  > signup, no API keys, no rate limiters (the wallet IS the rate
-  > limiter). Four tools: search, detail (full per-100g nutrition,
-  > 13 nutrients), compare (2–5 foods side by side with per-nutrient
-  > winners), and recipe (scale and sum ingredient nutrition). Live
-  > API: https://nutriref.xyz. Source + install:
-  > https://github.com/Younghef/nutriref-api.
-- **Author:** Your GitHub handle
-- **Repository:** `https://github.com/Younghef/nutriref-api`
-- **License:** MIT
-- **Install command:** same as mcp.so above
-- **Configuration:** same JSON block as mcp.so above
+**Field-by-field:**
+
+| Field | Value |
+|---|---|
+| "What would you like to submit?" | **MCP Server** |
+| URL | `https://github.com/Younghef/nutriref-api` |
+
+Click submit. That's the whole flow. The entry typically appears within a
+few days after PulseMCP's processing cycle.
+
+### Bonus: the route PulseMCP prefers
+
+PulseMCP's submit page notes they **automatically ingest entries from the
+[official MCP registry](https://github.com/modelcontextprotocol/registry)
+daily**. Listing there gives you PulseMCP + several other downstream
+directories for free, and is the canonical home for MCP server metadata.
+
+That submission is a separate JSON-based PR to the registry repo (different
+schema, requires a `server.json` manifest). Worth doing as a follow-up once
+the simpler registries are live — say the word and I'll prep that PR too.
 
 ---
 
