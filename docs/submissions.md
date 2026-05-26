@@ -195,13 +195,86 @@ PulseMCP's submit page notes they **automatically ingest entries from the
 daily**. Listing there gives you PulseMCP + several other downstream
 directories for free, and is the canonical home for MCP server metadata.
 
-That submission is a separate JSON-based PR to the registry repo (different
-schema, requires a `server.json` manifest). Worth doing as a follow-up once
-the simpler registries are live — say the word and I'll prep that PR too.
+That submission is the **official MCP registry** flow described in section 5 below — recommended next, since one publish there propagates to PulseMCP and several other downstream directories automatically.
 
 ---
 
-## 5. (Optional) awesome-ai-agents
+## 5. Official MCP registry (modelcontextprotocol/registry)
+
+**Why this matters:** PulseMCP, Smithery's discovery page, and several other directories auto-ingest from the official registry daily. One publish here is the highest-leverage submission of the set.
+
+The repo already has `server.json` at the root with everything except the bundle SHA-256 (which changes per build) and the release URL (depends on the tag you cut).
+
+### One-time setup
+
+1. Install the publisher CLI:
+   ```bash
+   git clone https://github.com/modelcontextprotocol/registry.git /tmp/mcp-registry
+   cd /tmp/mcp-registry && make publisher
+   # binary lands at /tmp/mcp-registry/bin/mcp-publisher
+   ```
+   (Or grab a release binary from https://github.com/modelcontextprotocol/registry/releases if available.)
+
+2. Log in via GitHub:
+   ```bash
+   mcp-publisher login github
+   ```
+   This is what authorizes the `io.github.younghef/` namespace.
+
+### Each release
+
+1. Build the bundle and capture its SHA-256 (the build script prints it):
+   ```bash
+   ./scripts/build-mcpb.sh
+   # → sha256: <64 hex chars>
+   ```
+
+2. Cut a GitHub release and attach the bundle:
+   ```bash
+   gh release create v0.2.0 build/nutriref.mcpb \
+     --title "v0.2.0" --notes "MCPB bundle for MCP registry."
+   ```
+   (Bump the tag for each new version. The download URL pattern is
+   `https://github.com/Younghef/nutriref-api/releases/download/<tag>/nutriref.mcpb`.)
+
+3. Update `server.json`:
+   - `version` and `packages[0].version` → match the tag (without the leading `v`)
+   - `packages[0].identifier` → the release asset URL
+   - `packages[0].fileSha256` → the sha256 printed by the build script
+
+4. Validate and publish:
+   ```bash
+   mcp-publisher validate    # optional but cheap
+   mcp-publisher publish
+   ```
+
+The entry appears at `https://registry.modelcontextprotocol.io/v0/servers?search=nutriref` within minutes, and downstream directories pick it up on their next ingest cycle (typically <24h for PulseMCP).
+
+### Namespace note
+
+`io.github.younghef/nutriref` is reserved by GitHub OAuth — only the `Younghef` GitHub account can publish under it. If you ever want a custom namespace (e.g., `xyz.nutriref/nutriref`), the registry supports DNS or HTTP verification on `nutriref.xyz`; see [registry docs](https://github.com/modelcontextprotocol/registry/tree/main/docs).
+
+---
+
+## 6. Glama.ai
+
+**Where:** https://glama.ai/mcp/servers — click **Add Server** in the top-right.
+
+Glama's form is short. Most fields are scraped from the linked GitHub repo (README, license, tools list), so the README pitch we already have is doing the work.
+
+**Field-by-field:**
+
+| Field | Value |
+|---|---|
+| Repository URL | `https://github.com/Younghef/nutriref-api` |
+| Category | **Finance** or **APIs** (whichever Glama currently lists; NutriRef is a paid API, so either fits) |
+| Short description | Pay-per-call USDA nutrition for AI agents — x402 micropayments, USDC on Base, no signup. |
+
+Glama also auto-discovers servers from the official registry, so this submission becomes redundant once section 5 is live. Do it if you want the listing now rather than waiting on the next ingest.
+
+---
+
+## 7. (Optional) awesome-ai-agents
 
 **Honest caveat:** awesome-ai-agents primarily lists agent **frameworks
 and agents**, not tools/APIs that agents consume. NutriRef is the latter,
@@ -226,13 +299,14 @@ fit of the four.
 
 ## Order to submit
 
-1. **awesome-mcp-servers PR** — biggest organic traffic of the four.
+1. **Official MCP registry (section 5)** — highest leverage; PulseMCP and others auto-ingest from here, so skip section 4 if you do this.
 2. **Smithery** — increasingly the default for auto-installable MCP servers.
-3. **mcp.so** — broad reach, lower bar to listing.
-4. **PulseMCP** — smaller audience but curated, signal-rich.
+3. **awesome-mcp-servers PR** — biggest organic traffic of the static lists.
+4. **mcp.so** — broad reach, lower bar to listing.
+5. **Glama** — quick add-server form, redundant once #1 propagates.
+6. **PulseMCP** — only if #1 hasn't propagated yet (it auto-ingests).
 
-All four can go in the same session if you have ~30 minutes; the bottleneck
-will be the awesome-mcp-servers PR review.
+All can go in one ~45-minute session; the bottleneck is the awesome-mcp-servers PR review.
 
 ## After submission
 

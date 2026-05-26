@@ -23,3 +23,16 @@ echo "→ packing"
 npx --yes @anthropic-ai/mcpb pack mcpb build/nutriref.mcpb
 
 echo "✓ built: build/nutriref.mcpb"
+
+# Emit SHA-256 for the official MCP registry's server.json (fileSha256).
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA=$(sha256sum build/nutriref.mcpb | awk '{print $1}')
+elif command -v shasum >/dev/null 2>&1; then
+  SHA=$(shasum -a 256 build/nutriref.mcpb | awk '{print $1}')
+else
+  SHA=""
+fi
+if [ -n "$SHA" ]; then
+  echo "  sha256: $SHA"
+  echo "  → paste into server.json packages[0].fileSha256 before mcp-publisher publish"
+fi
