@@ -5,7 +5,6 @@ PAYER_PRIVATE_KEY. The agent operator funds that wallet with USDC on Base.
 """
 
 import os
-import sys
 from typing import Any
 
 import httpx
@@ -16,25 +15,26 @@ from x402.http.clients.httpx import wrapHttpxWithPayment
 from x402.mechanisms.evm.exact import register_exact_evm_client
 
 
-PAYER_PRIVATE_KEY = os.environ.get("PAYER_PRIVATE_KEY")
 NUTRIREF_BASE_URL = os.environ.get("NUTRIREF_BASE_URL", "https://nutriref.xyz")
 
-if not PAYER_PRIVATE_KEY:
-    sys.exit(
-        "PAYER_PRIVATE_KEY env var is required. Provide a Base mainnet wallet "
-        "private key with USDC balance — each NutriRef call costs $0.001-$0.005."
-    )
-
-_account = Account.from_key(PAYER_PRIVATE_KEY)
-_x402 = x402Client()
-register_exact_evm_client(_x402, _account)
 _http: httpx.AsyncClient | None = None
 
 
 def _client() -> httpx.AsyncClient:
     global _http
-    if _http is None:
-        _http = wrapHttpxWithPayment(_x402, base_url=NUTRIREF_BASE_URL, timeout=30.0)
+    if _http is not None:
+        return _http
+    key = os.environ.get("PAYER_PRIVATE_KEY")
+    if not key:
+        raise RuntimeError(
+            "PAYER_PRIVATE_KEY env var is required to make a paid NutriRef call. "
+            "Set it to a Base mainnet wallet private key with USDC balance "
+            "(each call costs $0.001-$0.005)."
+        )
+    account = Account.from_key(key)
+    x402 = x402Client()
+    register_exact_evm_client(x402, account)
+    _http = wrapHttpxWithPayment(x402, base_url=NUTRIREF_BASE_URL, timeout=30.0)
     return _http
 
 
@@ -42,9 +42,10 @@ mcp = FastMCP(
     "nutriref",
     instructions=(
         "NutriRef: structured USDA FoodData Central nutrition data. Each call charges "
-        f"USDC from {_account.address} on Base mainnet via x402. Use nutrition_search "
-        "first to get an fdc_id, then nutrition_detail for the full breakdown. "
-        "nutrition_compare and nutrition_recipe compose from cached detail data."
+        "USDC from the configured PAYER_PRIVATE_KEY wallet on Base mainnet via x402. "
+        "Use nutrition_search first to get an fdc_id, then nutrition_detail for the "
+        "full breakdown. nutrition_compare and nutrition_recipe compose from cached "
+        "detail data."
     ),
 )
 

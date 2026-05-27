@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "nutriref",
   "display_name": "NutriRef",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pay-per-call USDA nutrition data for AI agents (x402 + USDC on Base).",
   "long_description": "NutriRef exposes the USDA FoodData Central nutrition database as four MCP tools (nutrition_search, nutrition_detail, nutrition_compare, nutrition_recipe). Each call charges $0.001-$0.005 in USDC on Base mainnet via the x402 micropayment protocol — no signup, no API keys. Returns normalized per-100g nutrition across 13 tracked nutrients.",
   "author": {
