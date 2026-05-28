@@ -222,3 +222,7 @@ __marimo__/
 # MCPB build artifacts (the .mcpb is built from mcpb/ source via scripts/build-mcpb.sh)
 build/
 mcpb/server/mcp_server/
+
+# PyPI build artifacts (synced copy + dist, built from pypi/ via scripts/build-pypi.sh)
+pypi/mcp_server/
+pypi/dist/
