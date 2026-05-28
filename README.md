@@ -1,5 +1,7 @@
 # NutriRef
 
+[![NutriRef MCP server](https://glama.ai/mcp/servers/Younghef/nutriref-api/badges/score.svg)](https://glama.ai/mcp/servers/Younghef/nutriref-api)
+
 **Pay-per-call USDA nutrition data for AI agents.** Structured FoodData Central via the [x402](https://www.x402.org/) micropayment protocol — agents pay $0.001–$0.005 in USDC per request, no signup, no API keys, no human auth flows.
 
 Live at **<https://nutriref.xyz>**. Spec at [/openapi.json](https://nutriref.xyz/openapi.json) · Swagger at [/docs](https://nutriref.xyz/docs) · Bazaar discovery at [/.well-known/x402](https://nutriref.xyz/.well-known/x402).
