@@ -34,7 +34,7 @@ payer = [
 # (Claude Desktop, Claude Code, etc.) consume NutriRef as native tools.
 mcp = [
     "mcp>=1.0.0",
-    "x402>=2.10.0",
+    "x402[evm]>=2.10.0",
     "eth-account>=0.13.0",
 ]
 
