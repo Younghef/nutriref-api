@@ -19,15 +19,11 @@ All values per 100g. Missing nutrients are `null`, not `0`. `compare` returns pe
 
 ## Use it from Claude (or any MCP agent)
 
-NutriRef ships an MCP server that exposes the four endpoints as native tools. Install once:
+NutriRef ships an MCP server that exposes the four endpoints as native tools. Install it from PyPI:
 
 ```bash
-git clone https://github.com/Younghef/nutriref-api.git
-cd nutriref-api
-pip install -e ".[mcp]"
+pip install nutriref-mcp
 ```
-
-> A PyPI release is planned. Until then the source install above is the supported path.
 
 Then add this to your MCP client config (Claude Desktop's `claude_desktop_config.json`, Claude Code's MCP settings, etc.):
 
@@ -35,8 +31,7 @@ Then add this to your MCP client config (Claude Desktop's `claude_desktop_config
 {
   "mcpServers": {
     "nutriref": {
-      "command": "python",
-      "args": ["-m", "mcp_server"],
+      "command": "nutriref-mcp",
       "env": {
         "PAYER_PRIVATE_KEY": "0x...your-funded-wallet-key...",
         "NUTRIREF_BASE_URL": "https://nutriref.xyz"
@@ -45,6 +40,8 @@ Then add this to your MCP client config (Claude Desktop's `claude_desktop_config
   }
 }
 ```
+
+> Prefer not to install? Use `uvx nutriref-mcp` as the `command` to run it on demand. To work from a clone instead, `pip install -e ".[mcp]"` and set `command` to `python` with `args: ["-m", "mcp_server"]`.
 
 The wallet needs USDC on Base mainnet — gas is sponsored by the facilitator, so you only need stablecoin balance. The agent now has `nutrition_search`, `nutrition_detail`, `nutrition_compare`, `nutrition_recipe` and auto-pays per call.
 
