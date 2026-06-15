@@ -1,8 +1,22 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# Allow relocating .env outside the project tree. The repo lives in a
+# OneDrive-synced path on the maintainer's box, and OneDrive periodically
+# reverts .env mid-session (see CLAUDE memory env-file-instability). Setting
+# NUTRIREF_ENV_FILE=%USERPROFILE%\.nutriref\.env (or any other path) keeps
+# secrets out of the synced tree.
+_ENV_FILE = os.environ.get("NUTRIREF_ENV_FILE", ".env")
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILE,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     usda_api_key: str
     usda_base_url: str = "https://api.nal.usda.gov/fdc/v1"

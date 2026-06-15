@@ -1,7 +1,21 @@
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from importlib import metadata
+
+# fastapi-x402's facilitator.py prints "🔍" debug lines unconditionally
+# (see facilitator.py:164-178). Under Windows' default cp1252 stdout, that
+# raises UnicodeEncodeError, which fastapi_x402's blanket exception handler
+# rebadges as `402 Payment processing failed: 'charmap' codec...`. Force UTF-8
+# on stdout/stderr at import time so the prints succeed (no-op when already
+# UTF-8 — Linux/macOS containers and PYTHONUTF8=1 shells).
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 from fastapi import FastAPI
 from fastapi_x402 import init_x402
