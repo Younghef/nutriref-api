@@ -1,6 +1,6 @@
 [project]
 name = "nutriref-mcp"
-version = "0.2.2"
+version = "0.2.3"
 description = "MCP server for NutriRef — pay-per-call USDA nutrition for AI agents (x402 + USDC on Base)."
 readme = "README.md"
 requires-python = ">=3.11"
