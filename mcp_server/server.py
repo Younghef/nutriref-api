@@ -38,6 +38,52 @@ def _client() -> httpx.AsyncClient:
     return _http
 
 
+def _hint_for(status: int, code: str | None) -> str:
+    if status == 402:
+        return "Payment was required but the x402 flow did not complete — verify PAYER_PRIVATE_KEY's wallet has USDC on Base and the facilitator is reachable."
+    if status == 404:
+        return "The fdc_id was not found in USDA FoodData Central. Re-check it with nutrition_search."
+    if status == 503 and code == "cache_unavailable":
+        return "NutriRef's cache backend is down — retry in a few seconds; if it persists, the operator should check REDIS_URL."
+    if status >= 500:
+        return "Upstream error on the NutriRef side. Retry; if it persists, the operator should check server logs."
+    if status == 429:
+        return "Rate-limited upstream — wait a few seconds and retry."
+    return "Inspect status and message; this is the raw upstream payload."
+
+
+async def _request(method: str, path: str, **kw: Any) -> dict[str, Any]:
+    """Single source of truth for HTTP→tool-result conversion.
+
+    Catches httpx errors (including non-2xx responses) and returns a structured
+    {status, error, message, hint} dict instead of letting an HTTPStatusError
+    bubble into the MCP tool boundary as an unstructured stack trace.
+    """
+    try:
+        r = await getattr(_client(), method)(path, **kw)
+    except httpx.RequestError as e:
+        return {
+            "status": 0,
+            "error": "transport_error",
+            "message": f"{e.__class__.__name__}: {e}",
+            "hint": "Could not reach NutriRef. Check network and NUTRIREF_BASE_URL.",
+        }
+    if r.is_success:
+        return r.json()
+    body: dict[str, Any] = {}
+    try:
+        body = r.json() if r.content else {}
+    except ValueError:
+        body = {"raw": r.text[:500]}
+    code = body.get("error") if isinstance(body.get("error"), str) else None
+    return {
+        "status": r.status_code,
+        "error": code or f"http_{r.status_code}",
+        "message": body.get("message") or body.get("error") or r.text[:500],
+        "hint": _hint_for(r.status_code, code),
+    }
+
+
 mcp = FastMCP(
     "nutriref",
     instructions=(
@@ -58,9 +104,7 @@ async def nutrition_search(q: str, limit: int = 10) -> dict[str, Any]:
         q: Free-text food name (e.g. "banana", "greek yogurt", "chicken breast").
         limit: Max results to return, 1-50. Default 10. Use a small limit unless you need to browse.
     """
-    r = await _client().get("/v1/nutrition/search", params={"q": q, "limit": limit})
-    r.raise_for_status()
-    return r.json()
+    return await _request("get", "/v1/nutrition/search", params={"q": q, "limit": limit})
 
 
 @mcp.tool()
@@ -70,9 +114,7 @@ async def nutrition_detail(fdc_id: int) -> dict[str, Any]:
     Args:
         fdc_id: USDA FoodData Central ID, obtained from nutrition_search.
     """
-    r = await _client().get(f"/v1/nutrition/detail/{fdc_id}")
-    r.raise_for_status()
-    return r.json()
+    return await _request("get", f"/v1/nutrition/detail/{fdc_id}")
 
 
 @mcp.tool()
@@ -82,9 +124,7 @@ async def nutrition_compare(fdc_ids: list[int]) -> dict[str, Any]:
     Args:
         fdc_ids: 2 to 5 USDA FDC IDs to compare.
     """
-    r = await _client().post("/v1/nutrition/compare", json={"fdc_ids": fdc_ids})
-    r.raise_for_status()
-    return r.json()
+    return await _request("post", "/v1/nutrition/compare", json={"fdc_ids": fdc_ids})
 
 
 @mcp.tool()
@@ -94,9 +134,7 @@ async def nutrition_recipe(ingredients: list[dict[str, Any]]) -> dict[str, Any]:
     Args:
         ingredients: List of {"fdc_id": int, "grams": float} pairs. At least one; weights in grams.
     """
-    r = await _client().post("/v1/nutrition/recipe", json={"ingredients": ingredients})
-    r.raise_for_status()
-    return r.json()
+    return await _request("post", "/v1/nutrition/recipe", json={"ingredients": ingredients})
 
 
 def main() -> None:

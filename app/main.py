@@ -10,6 +10,7 @@ from fastapi_x402 import networks as x402_networks
 from app import discovery, landing, usda
 from app.cache import close_redis, ping_redis
 from app.config import settings
+from app.errors import install_exception_handlers
 from app.routes import compare, detail, recipe, search
 
 
@@ -62,6 +63,11 @@ init_x402(
     network=settings.x402_network,
     facilitator_url=settings.x402_facilitator_url,
 )
+
+# Install BEFORE include_router so handlers are registered when routes are added.
+# Translates non-payment exceptions to proper status codes before fastapi_x402's
+# blanket exception handler can rebadge them as 402 Payment Required.
+install_exception_handlers(app)
 
 # Defect-capture middleware. Disabled unless REQUEST_LOG_FILE is set, so prod
 # and the test suite are unaffected.
