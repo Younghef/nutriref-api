@@ -7,7 +7,10 @@ class Settings(BaseSettings):
     usda_api_key: str
     usda_base_url: str = "https://api.nal.usda.gov/fdc/v1"
 
-    redis_url: str = "redis://redis:6379/0"
+    # Default targets a host-local Redis (the common dev case). docker-compose
+    # overrides this to redis://redis:6379/0 so the api container reaches the
+    # `redis` service over the internal docker network.
+    redis_url: str = "redis://localhost:6379/0"
 
     x402_network: str = "base-sepolia"
     x402_receiver_address: str

@@ -1,12 +1,14 @@
 import logging
+import os
 from contextlib import asynccontextmanager
+from importlib import metadata
 
 from fastapi import FastAPI
 from fastapi_x402 import init_x402
 from fastapi_x402 import networks as x402_networks
 
 from app import discovery, landing, usda
-from app.cache import close_redis
+from app.cache import close_redis, ping_redis
 from app.config import settings
 from app.routes import compare, detail, recipe, search
 
@@ -21,9 +23,18 @@ _base_usdc = x402_networks.NETWORK_CONFIGS["base"].assets["usdc"]
 _base_usdc.name = "USD Coin"
 _base_usdc.eip712_name = "USD Coin"
 
+# Guardrail: a fastapi-x402 upgrade or import-order change can silently undo the
+# patch above and break Base mainnet payments. Fail at import time instead.
+assert _base_usdc.eip712_name == "USD Coin", (
+    "Base mainnet USDC EIP-712 name patch did not stick — fastapi-x402's "
+    "NETWORK_CONFIGS shape may have changed. Re-verify the patch in app/main.py "
+    "against the installed fastapi-x402 version."
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await ping_redis()
     yield
     await usda.close_client()
     await close_redis()
@@ -41,7 +52,7 @@ app = FastAPI(
         "Four endpoints: food search ($0.001), food detail ($0.002), side-by-side compare ($0.003), "
         "and recipe scale+sum ($0.005). All values per 100g; missing nutrients are `null`."
     ),
-    version="0.2.0",
+    version=metadata.version("nutriref"),
     lifespan=lifespan,
 )
 
@@ -51,6 +62,13 @@ init_x402(
     network=settings.x402_network,
     facilitator_url=settings.x402_facilitator_url,
 )
+
+# Defect-capture middleware. Disabled unless REQUEST_LOG_FILE is set, so prod
+# and the test suite are unaffected.
+if os.environ.get("REQUEST_LOG_FILE"):
+    from app.middleware import RequestLogger
+
+    app.add_middleware(RequestLogger)
 
 app.include_router(landing.router)
 app.include_router(discovery.router)

@@ -23,6 +23,23 @@ async def close_redis() -> None:
         _redis = None
 
 
+async def ping_redis() -> None:
+    """Verify Redis is reachable. Raises RuntimeError with the resolved URL on failure.
+
+    Called from the FastAPI lifespan so a bad REDIS_URL surfaces at startup
+    instead of as a 402 'Payment processing failed' from inside fastapi_x402's
+    blanket exception handler.
+    """
+    try:
+        await get_redis().ping()
+    except Exception as e:
+        raise RuntimeError(
+            f"Redis unreachable at {settings.redis_url!r}: {e}. "
+            "Set REDIS_URL to a reachable instance (e.g. redis://localhost:6379/0 "
+            "for host-local dev, redis://redis:6379/0 inside docker-compose)."
+        ) from e
+
+
 def make_key(namespace: str, *parts: Any) -> str:
     joined = ":".join(str(p) for p in parts)
     return f"nutriref:v1:{namespace}:{joined}"
